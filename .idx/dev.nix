@@ -8,7 +8,8 @@
     # pkgs.go
     # pkgs.python311
     # pkgs.python311Packages.pip
-    # pkgs.nodejs_20
+    pkgs.nodejs_20
+    pkgs.firebase-tools
     # pkgs.nodePackages.nodemon
   ];
   # Sets environment variables in the workspace
