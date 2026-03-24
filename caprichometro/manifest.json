@@ -1,0 +1,13 @@
+{
+  "name": "Caprichómetro",
+  "short_name": "Caprichómetro",
+  "description": "¿Cuánto te cuesta ese capricho en horas de tu vida?",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0d0d14",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
