@@ -575,25 +575,43 @@
 
 <script>
 // ── DATA ────────────────────────────────────────────────
+// type:'time'  → count = workMinutes / minutes
+// type:'price' → count = itemPrice   / euros
 const REFS = [
-  { icon: '📺', count_word: 'capítulo', count_word_plural: 'capítulos', of: 'Los Simpsons', minutes: 22 },
-  { icon: '👭', count_word: 'episodio', count_word_plural: 'episodios', of: 'Friends', minutes: 22 },
-  { icon: '😴', count_word: 'siesta', count_word_plural: 'siestas', of: 'de campeonato', minutes: 23 },
-  { icon: '☕', count_word: 'café', count_word_plural: 'cafés', of: 'con un amigo', minutes: 15 },
-  { icon: '🧪', count_word: 'episodio', count_word_plural: 'episodios', of: 'Breaking Bad', minutes: 47 },
-  { icon: '🐉', count_word: 'episodio', count_word_plural: 'episodios', of: 'Juego de Tronos', minutes: 57 },
-  { icon: '🦸', count_word: 'peli', count_word_plural: 'pelis', of: 'de Marvel', minutes: 130 },
-  { icon: '🎬', count_word: 'película', count_word_plural: 'películas', of: 'media de Netflix', minutes: 110 },
-  { icon: '⚽', count_word: 'partido', count_word_plural: 'partidos', of: 'de fútbol', minutes: 90 },
-  { icon: '🎸', count_word: 'concierto', count_word_plural: 'conciertos', of: 'completo', minutes: 120 },
-  { icon: '🏋️', count_word: 'sesión', count_word_plural: 'sesiones', of: 'de gym', minutes: 65 },
-  { icon: '🎓', count_word: 'clase', count_word_plural: 'clases', of: 'en la uni', minutes: 50 },
-  { icon: '🍕', count_word: 'rato', count_word_plural: 'ratos', of: 'esperando la pizza', minutes: 30 },
-  { icon: '🚿', count_word: 'ducha', count_word_plural: 'duchas', of: 'cantando', minutes: 12 },
-  { icon: '📖', count_word: 'sesión', count_word_plural: 'sesiones', of: 'de lectura', minutes: 45 },
-  { icon: '🛁', count_word: 'baño', count_word_plural: 'baños', of: 'relajante', minutes: 35 },
-  { icon: '💼', count_word: 'jornada', count_word_plural: 'jornadas', of: 'laboral', minutes: 480 },
-  { icon: '📅', count_word: 'semana', count_word_plural: 'semanas', of: 'de trabajo', minutes: 0, dynamic: 'week' },
+  // ── Tiempo ──
+  { type:'time', icon:'📺', w:'capítulo',  wp:'capítulos',  of:'Los Simpsons',       minutes: 22  },
+  { type:'time', icon:'👭', w:'episodio',  wp:'episodios',  of:'Friends',             minutes: 22  },
+  { type:'time', icon:'😴', w:'siesta',    wp:'siestas',    of:'de campeonato',       minutes: 23  },
+  { type:'time', icon:'🧪', w:'episodio',  wp:'episodios',  of:'Breaking Bad',        minutes: 47  },
+  { type:'time', icon:'🐉', w:'episodio',  wp:'episodios',  of:'Juego de Tronos',     minutes: 57  },
+  { type:'time', icon:'🦸', w:'peli',      wp:'pelis',      of:'de Marvel',           minutes: 130 },
+  { type:'time', icon:'🎬', w:'película',  wp:'películas',  of:'media de Netflix',    minutes: 110 },
+  { type:'time', icon:'⚽', w:'partido',   wp:'partidos',   of:'de fútbol',           minutes: 90  },
+  { type:'time', icon:'🎸', w:'concierto', wp:'conciertos', of:'completo',            minutes: 120 },
+  { type:'time', icon:'🏋️', w:'sesión',    wp:'sesiones',   of:'de gym',              minutes: 65  },
+  { type:'time', icon:'🎓', w:'clase',     wp:'clases',     of:'en la uni',           minutes: 50  },
+  { type:'time', icon:'🚿', w:'ducha',     wp:'duchas',     of:'cantando',            minutes: 12  },
+  { type:'time', icon:'💼', w:'jornada',   wp:'jornadas',   of:'laboral',             minutes: 480 },
+  { type:'time', icon:'📅', w:'semana',    wp:'semanas',    of:'de trabajo',          minutes: 0, dynamic:'week' },
+  // ── Precio ──
+  { type:'price', icon:'☕', w:'café',        wp:'cafés',          of:'',              euros: 1.40  },
+  { type:'price', icon:'🥐', w:'croissant',   wp:'croissants',     of:'de panadería',  euros: 1.50  },
+  { type:'price', icon:'🍺', w:'caña',        wp:'cañas',          of:'de cerveza',    euros: 2.00  },
+  { type:'price', icon:'🥪', w:'bocadillo',   wp:'bocadillos',     of:'de bar',        euros: 3.50  },
+  { type:'price', icon:'🍷', w:'copa',        wp:'copas',          of:'de vino',       euros: 3.00  },
+  { type:'price', icon:'🍦', w:'helado',      wp:'helados',        of:'de cucurucho',  euros: 2.50  },
+  { type:'price', icon:'🎰', w:'rasca',       wp:'rascas',         of:'de gasolinera', euros: 2.00  },
+  { type:'price', icon:'🍔', w:'hamburguesa', wp:'hamburguesas',   of:'de fast food',  euros: 8.50  },
+  { type:'price', icon:'🌮', w:'menú',        wp:'menús',          of:'del día',       euros: 12.00 },
+  { type:'price', icon:'🍕', w:'pizza',       wp:'pizzas',         of:'para llevar',   euros: 12.00 },
+  { type:'price', icon:'🎬', w:'entrada',     wp:'entradas',       of:'al cine',       euros: 10.00 },
+  { type:'price', icon:'🎵', w:'mes de',      wp:'meses de',       of:'Spotify',       euros: 10.99 },
+  { type:'price', icon:'📺', w:'mes de',      wp:'meses de',       of:'Netflix',       euros: 12.99 },
+  { type:'price', icon:'🚗', w:'depósito',    wp:'depósitos',      of:'de gasolina',   euros: 70.00 },
+  { type:'price', icon:'🏨', w:'noche de',    wp:'noches de',      of:'hotel',         euros: 80.00 },
+  { type:'price', icon:'✈️', w:'vuelo',       wp:'vuelos',         of:'nacional',      euros: 55.00 },
+  { type:'price', icon:'🎮', w:'videojuego',  wp:'videojuegos',    of:'indie en Steam',euros: 14.99 },
+  { type:'price', icon:'💊', w:'pastilla de', wp:'pastillas de',   of:'vitaminas C',   euros: 0.15  },
 ];
 
 // ── STATE ────────────────────────────────────────────────
@@ -710,7 +728,7 @@ function buildResult(price) {
 
   const timeStr = formatTime(totalMin);
   const verdictHtml = verdict(totalMin);
-  const refsHtml = buildRefs(totalMin);
+  const refsHtml = buildRefs(totalMin, price);
 
   return `
     <div class="result-area">
@@ -750,37 +768,57 @@ function verdict(totalMin) {
   return `<div class="verdict ${cls}">${text}</div>`;
 }
 
-function buildRefs(totalMin) {
-  // Build dynamic week ref
+function buildRefs(totalMin, price) {
+  // Fix dynamic week ref
   const weekRef = REFS.find(r => r.dynamic === 'week');
   if (weekRef) weekRef.minutes = (config.hoursPerWeek || 40) * 60;
 
-  // Filter: show refs where count is between 0.25 and 60
-  const candidates = REFS.filter(r => r.minutes > 0).map(r => ({
-    ...r,
-    count: totalMin / r.minutes
-  })).filter(r => r.count >= 0.25 && r.count <= 60);
+  const MIN = 0.25, MAX = 60;
 
-  // Sort by how "round" the count is (prefer whole/half numbers)
-  candidates.sort((a, b) => roundness(b.count) - roundness(a.count));
+  // Score all refs
+  function score(r) {
+    const n = r.count;
+    // Prefer counts that feel natural (0.5–30), penalise extremes
+    const rangePenalty = (n < 0.5 || n > 30) ? -1 : 0;
+    return roundness(n) + rangePenalty;
+  }
 
-  // Pick up to 4 diverse ones
-  const picked = candidates.slice(0, 4);
+  const timeRefs = REFS
+    .filter(r => r.type === 'time' && r.minutes > 0)
+    .map(r => ({ ...r, count: totalMin / r.minutes }))
+    .filter(r => r.count >= MIN && r.count <= MAX);
+
+  const priceRefs = REFS
+    .filter(r => r.type === 'price')
+    .map(r => ({ ...r, count: price / r.euros }))
+    .filter(r => r.count >= MIN && r.count <= MAX);
+
+  timeRefs.sort((a, b)  => score(b) - score(a));
+  priceRefs.sort((a, b) => score(b) - score(a));
+
+  // Take best 2 of each type, fall back to the other if one is empty
+  let picked = [];
+  if (timeRefs.length >= 2 && priceRefs.length >= 2) {
+    picked = [timeRefs[0], priceRefs[0], timeRefs[1], priceRefs[1]];
+  } else if (timeRefs.length === 0) {
+    picked = priceRefs.slice(0, 4);
+  } else if (priceRefs.length === 0) {
+    picked = timeRefs.slice(0, 4);
+  } else {
+    // Mix whatever we have
+    picked = [...timeRefs.slice(0, 2), ...priceRefs.slice(0, 2)].slice(0, 4);
+  }
 
   if (picked.length === 0) {
-    // Fallback: just show days / weeks
-    const days  = totalMin / 480;
-    const weeks = totalMin / ((config.hoursPerWeek || 40) * 60);
-    if (days >= 1) {
-      return refCard('💼', formatCount(days), `${days >= 2 ? 'jornadas' : 'jornada'} laboral${days >= 2 ? 'es' : ''}`, 0);
-    }
-    return refCard('📅', formatCount(weeks), `semana${weeks >= 2 ? 's' : ''} de trabajo`, 0);
+    const days = totalMin / 480;
+    return refCard('💼', formatCount(days), `${days >= 2 ? 'jornadas laborales' : 'jornada laboral'}`, 0);
   }
 
   return picked.map((r, i) => {
     const n    = r.count;
-    const word = n < 2 ? r.count_word : r.count_word_plural;
-    return refCard(r.icon, formatCount(n), `${word} de ${r.of}`, i);
+    const word = n < 1.8 ? r.w : r.wp;
+    const label = r.of ? `${word} ${r.of}` : word;
+    return refCard(r.icon, formatCount(n), label, i);
   }).join('');
 }
 
