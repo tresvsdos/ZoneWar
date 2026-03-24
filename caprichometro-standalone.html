@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#8b5cf6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Caprichómetro">
+  <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Caprich%C3%B3metro%22%2C%22short_name%22%3A%22Caprich%C3%B3metro%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230d0d14%22%2C%22theme_color%22%3A%22%238b5cf6%22%7D">
+  <title>Caprichómetro</title>
+  <style>
+    :root {
+      --bg: #0d0d14;
+      --surface: #14141e;
+      --card: #1a1a26;
+      --card2: #1f1f2e;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0f0f8;
+      --dim: rgba(240,240,248,0.55);
+      --muted: rgba(240,240,248,0.3);
+      --purple: #8b5cf6;
+      --pink: #d946ef;
+      --grad: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+      --grad-subtle: linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(217,70,239,0.18) 100%);
+      --r: 18px;
+      --r-sm: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100%;
+      overflow: hidden;
+    }
+    .app {
+      height: 100vh;
+      height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      transition: transform 0.38s cubic-bezier(.4,0,.2,1), opacity 0.38s ease;
+    }
+    .screen::-webkit-scrollbar { display: none; }
+    .screen.out-left  { transform: translateX(-110%); opacity: 0; pointer-events: none; }
+    .screen.out-right { transform: translateX(110%);  opacity: 0; pointer-events: none; }
+    .grad-header { background: var(--grad); padding: env(safe-area-inset-top, 0px) 0 0; flex-shrink: 0; }
+    .grad-header-inner { padding: 28px 24px 28px; }
+    .app-title { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px; }
+    .header-row { display: flex; align-items: center; justify-content: space-between; }
+    .header-main { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); border: none; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 17px; transition: background 0.2s;
+    }
+    .icon-btn:active { background: rgba(255,255,255,0.35); }
+    .rate-pill {
+      margin-top: 14px; display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.18); border-radius: 100px;
+      padding: 5px 14px; font-size: 13px; font-weight: 600;
+    }
+    .rate-pill span { opacity: 0.75; }
+    .body {
+      flex: 1; padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .seg {
+      display: grid; gap: 3px; background: var(--surface);
+      border-radius: var(--r-sm); padding: 3px;
+    }
+    .seg.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .seg-btn {
+      border: none; background: transparent; color: var(--dim);
+      font-size: 14px; font-weight: 600; font-family: inherit;
+      padding: 9px 4px; border-radius: 9px; cursor: pointer;
+      transition: all 0.2s; text-align: center;
+    }
+    .seg-btn.active { background: var(--card2); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+    .input-wrap { position: relative; display: flex; align-items: center; }
+    .input-prefix { position: absolute; left: 16px; font-size: 22px; font-weight: 700; color: var(--purple); pointer-events: none; }
+    input[type="number"] {
+      width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); color: var(--text); font-family: inherit;
+      font-size: 22px; font-weight: 700; padding: 14px 16px 14px 38px;
+      outline: none; -webkit-appearance: none; transition: border-color 0.2s;
+    }
+    input[type="number"]:focus { border-color: var(--purple); }
+    input[type="number"]::placeholder { color: var(--muted); font-weight: 500; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .input-wrap.no-prefix input { padding-left: 16px; }
+    .btn-main {
+      width: 100%; background: var(--grad); border: none; border-radius: var(--r-sm);
+      color: #fff; font-family: inherit; font-size: 17px; font-weight: 700;
+      padding: 16px; cursor: pointer; letter-spacing: 0.01em;
+      transition: opacity 0.15s, transform 0.15s; box-shadow: 0 4px 20px rgba(139,92,246,0.4);
+    }
+    .btn-main:active { opacity: 0.85; transform: scale(0.98); }
+    .btn-main:disabled { opacity: 0.4; pointer-events: none; }
+    .price-area {
+      background: var(--grad-subtle); border: 1.5px solid rgba(139,92,246,0.25);
+      border-radius: var(--r); padding: 20px;
+    }
+    .price-label { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--purple); margin-bottom: 10px; opacity: 0.9; }
+    .price-input-wrap { display: flex; align-items: center; gap: 8px; }
+    .price-symbol {
+      font-size: 32px; font-weight: 800;
+      background: var(--grad); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text; line-height: 1;
+    }
+    input.price-input {
+      flex: 1; background: transparent; border: none;
+      border-bottom: 2px solid rgba(139,92,246,0.4); border-radius: 0;
+      color: var(--text); font-family: inherit; font-size: 40px; font-weight: 800;
+      padding: 4px 0 8px; outline: none; -webkit-appearance: none; letter-spacing: -1px;
+    }
+    input.price-input::placeholder { color: var(--muted); font-weight: 700; }
+    input.price-input:focus { border-bottom-color: var(--purple); }
+    input.price-input::-webkit-inner-spin-button,
+    input.price-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .result-area { display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.35s ease; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .result-hero {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 22px 20px; text-align: center;
+    }
+    .result-time-label { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .result-time {
+      font-size: 38px; font-weight: 900; letter-spacing: -1.5px;
+      background: var(--grad); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.1; margin-bottom: 6px;
+    }
+    .result-sub { font-size: 14px; color: var(--dim); font-weight: 500; }
+    .verdict {
+      display: inline-block; margin-top: 12px; padding: 5px 14px;
+      border-radius: 100px; font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+    }
+    .verdict.great  { background: rgba(16,185,129,0.15); color: #34d399; }
+    .verdict.ok     { background: rgba(251,191,36,0.12);  color: #fbbf24; }
+    .verdict.pricey { background: rgba(249,115,22,0.12);  color: #fb923c; }
+    .verdict.ouch   { background: rgba(239,68,68,0.12);   color: #f87171; }
+    .refs-title { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0 2px; }
+    .ref-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      animation: fadeUp 0.35s ease both;
+    }
+    .ref-icon {
+      font-size: 28px; line-height: 1; flex-shrink: 0;
+      width: 44px; height: 44px; display: flex; align-items: center;
+      justify-content: center; background: var(--card2); border-radius: 12px;
+    }
+    .ref-text { flex: 1; min-width: 0; }
+    .ref-count {
+      font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+      background: var(--grad); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .ref-name { font-size: 13px; color: var(--dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .setup-hero {
+      padding: 32px 24px 24px;
+      background: var(--grad); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text; flex-shrink: 0;
+    }
+    .setup-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; }
+    .setup-title { font-size: 30px; font-weight: 900; letter-spacing: -0.8px; line-height: 1.1; margin-top: 4px; }
+    .setup-sub { font-size: 14px; font-weight: 500; -webkit-text-fill-color: rgba(240,240,248,0.6); margin-top: 6px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-label { font-size: 13px; font-weight: 600; color: var(--dim); padding: 0 2px; }
+    .hours-row { display: flex; align-items: center; gap: 12px; }
+    .hours-row input { flex: 1; font-size: 22px; }
+    .hours-unit { font-size: 13px; font-weight: 600; color: var(--dim); flex-shrink: 0; }
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 8px; padding: 20px; text-align: center; color: var(--muted);
+    }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 4px; }
+    .empty-state p { font-size: 14px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SETUP -->
+  <div class="screen out-right" id="screen-setup">
+    <div class="setup-hero" style="padding-top: calc(env(safe-area-inset-top, 0px) + 32px);">
+      <div class="setup-eyebrow">Caprichómetro</div>
+      <div class="setup-title">¿Cuánto vale<br>tu tiempo?</div>
+      <div class="setup-sub">Cuéntame cuánto cobras y<br>haré los cálculos por ti.</div>
+    </div>
+    <div class="body">
+      <div class="form-group">
+        <div class="form-label">¿Cuánto cobras?</div>
+        <div class="input-wrap">
+          <span class="input-prefix">€</span>
+          <input type="number" id="salary-input" placeholder="0" min="0" inputmode="decimal">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">¿Cada cuánto?</div>
+        <div class="seg cols-3">
+          <button class="seg-btn" data-freq="hour">Por hora</button>
+          <button class="seg-btn active" data-freq="month">Al mes</button>
+          <button class="seg-btn" data-freq="year">Al año</button>
+        </div>
+      </div>
+      <div class="form-group" id="hours-group">
+        <div class="form-label">Horas semanales</div>
+        <div class="hours-row">
+          <div class="input-wrap no-prefix" style="flex:1;">
+            <input type="number" id="hours-input" placeholder="40" min="1" max="168" inputmode="numeric">
+          </div>
+          <span class="hours-unit">h/semana</span>
+        </div>
+      </div>
+      <button class="btn-main" id="setup-btn" disabled>Calcular mi hora →</button>
+      <div style="height: 8px;"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="screen out-right" id="screen-main">
+    <div class="grad-header">
+      <div class="grad-header-inner" style="padding-top: calc(env(safe-area-inset-top, 0px) + 20px);">
+        <div class="header-row">
+          <div>
+            <div class="app-title">Caprichómetro</div>
+            <div class="header-main">¿Lo mereces? ✨</div>
+          </div>
+          <button class="icon-btn" id="settings-btn">⚙️</button>
+        </div>
+        <div class="rate-pill">
+          <span>Tu hora vale</span>
+          <strong id="rate-value">—</strong>
+        </div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="price-area">
+        <div class="price-label">¿Cuánto cuesta?</div>
+        <div class="price-input-wrap">
+          <span class="price-symbol">€</span>
+          <input type="number" class="price-input" id="price-input" placeholder="0" min="0" inputmode="decimal">
+        </div>
+      </div>
+      <div id="result-container">
+        <div class="empty-state">
+          <div class="emoji">🛍️</div>
+          <p>Escribe el precio de ese capricho<br>y te diré cuánto de tu vida cuesta.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const REFS = [
+  // ── Tiempo ──
+  { type:'time', icon:'📺', w:'capítulo',  wp:'capítulos',  of:'Los Simpsons',       minutes: 22  },
+  { type:'time', icon:'👭', w:'episodio',  wp:'episodios',  of:'Friends',             minutes: 22  },
+  { type:'time', icon:'😴', w:'siesta',    wp:'siestas',    of:'de campeonato',       minutes: 23  },
+  { type:'time', icon:'🧪', w:'episodio',  wp:'episodios',  of:'Breaking Bad',        minutes: 47  },
+  { type:'time', icon:'🐉', w:'episodio',  wp:'episodios',  of:'Juego de Tronos',     minutes: 57  },
+  { type:'time', icon:'🦸', w:'peli',      wp:'pelis',      of:'de Marvel',           minutes: 130 },
+  { type:'time', icon:'🎬', w:'película',  wp:'películas',  of:'media de Netflix',    minutes: 110 },
+  { type:'time', icon:'⚽', w:'partido',   wp:'partidos',   of:'de fútbol',           minutes: 90  },
+  { type:'time', icon:'🎸', w:'concierto', wp:'conciertos', of:'completo',            minutes: 120 },
+  { type:'time', icon:'🏋️', w:'sesión',    wp:'sesiones',   of:'de gym',              minutes: 65  },
+  { type:'time', icon:'🎓', w:'clase',     wp:'clases',     of:'en la uni',           minutes: 50  },
+  { type:'time', icon:'🚿', w:'ducha',     wp:'duchas',     of:'cantando',            minutes: 12  },
+  { type:'time', icon:'💼', w:'jornada',   wp:'jornadas',   of:'laboral',             minutes: 480 },
+  { type:'time', icon:'📅', w:'semana',    wp:'semanas',    of:'de trabajo',          minutes: 0, dynamic:'week' },
+  // ── Precio ──
+  { type:'price', icon:'☕', w:'café',        wp:'cafés',        of:'',                euros: 1.40  },
+  { type:'price', icon:'🥐', w:'croissant',   wp:'croissants',   of:'de panadería',    euros: 1.50  },
+  { type:'price', icon:'🍺', w:'caña',        wp:'cañas',        of:'de cerveza',      euros: 2.00  },
+  { type:'price', icon:'🥪', w:'bocadillo',   wp:'bocadillos',   of:'de bar',          euros: 3.50  },
+  { type:'price', icon:'🍷', w:'copa',        wp:'copas',        of:'de vino',         euros: 3.00  },
+  { type:'price', icon:'🍦', w:'helado',      wp:'helados',      of:'de cucurucho',    euros: 2.50  },
+  { type:'price', icon:'🎰', w:'rasca',       wp:'rascas',       of:'de gasolinera',   euros: 2.00  },
+  { type:'price', icon:'🍔', w:'hamburguesa', wp:'hamburguesas', of:'de fast food',    euros: 8.50  },
+  { type:'price', icon:'🌮', w:'menú',        wp:'menús',        of:'del día',         euros: 12.00 },
+  { type:'price', icon:'🍕', w:'pizza',       wp:'pizzas',       of:'para llevar',     euros: 12.00 },
+  { type:'price', icon:'🎬', w:'entrada',     wp:'entradas',     of:'al cine',         euros: 10.00 },
+  { type:'price', icon:'🎵', w:'mes de',      wp:'meses de',     of:'Spotify',         euros: 10.99 },
+  { type:'price', icon:'📺', w:'mes de',      wp:'meses de',     of:'Netflix',         euros: 12.99 },
+  { type:'price', icon:'🚗', w:'depósito',    wp:'depósitos',    of:'de gasolina',     euros: 70.00 },
+  { type:'price', icon:'🏨', w:'noche de',    wp:'noches de',    of:'hotel',           euros: 80.00 },
+  { type:'price', icon:'✈️', w:'vuelo',       wp:'vuelos',       of:'nacional',        euros: 55.00 },
+  { type:'price', icon:'🎮', w:'videojuego',  wp:'videojuegos',  of:'indie en Steam',  euros: 14.99 },
+  { type:'price', icon:'💊', w:'pastilla de', wp:'pastillas de', of:'vitaminas C',     euros: 0.15  },
+];
+
+let config = JSON.parse(localStorage.getItem('capricho_config') || 'null');
+let freq = 'month';
+
+function init() {
+  if (config) showMain(); else showSetup();
+  wireSetup();
+  wireMain();
+  if ('serviceWorker' in navigator) {
+    const sw = `const C='caprichometro-v1';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{self.clients.claim()});`;
+    const blob = new Blob([sw], {type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+  }
+}
+
+function showSetup() {
+  document.getElementById('screen-setup').classList.remove('out-right','out-left');
+  document.getElementById('screen-main').classList.add('out-right');
+  document.getElementById('screen-main').classList.remove('out-left');
+}
+
+function showMain() {
+  renderRate();
+  document.getElementById('screen-main').classList.remove('out-right','out-left');
+  document.getElementById('screen-setup').classList.add('out-left');
+  document.getElementById('screen-setup').classList.remove('out-right');
+  document.getElementById('price-input').value = '';
+  document.getElementById('result-container').innerHTML = emptyState();
+}
+
+function wireSetup() {
+  const salaryInput = document.getElementById('salary-input');
+  const hoursInput  = document.getElementById('hours-input');
+  const hoursGroup  = document.getElementById('hours-group');
+  const setupBtn    = document.getElementById('setup-btn');
+
+  if (config) {
+    salaryInput.value = config.salary;
+    hoursInput.value  = config.hoursPerWeek;
+    freq = config.freq;
+  }
+
+  document.querySelectorAll('[data-freq]').forEach(btn => {
+    if (btn.dataset.freq === freq) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-freq]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      freq = btn.dataset.freq;
+      hoursGroup.style.display = freq === 'hour' ? 'none' : 'flex';
+      validate();
+    });
+  });
+
+  hoursGroup.style.display = freq === 'hour' ? 'none' : 'flex';
+
+  function validate() {
+    const s = parseFloat(salaryInput.value);
+    const h = parseFloat(hoursInput.value);
+    setupBtn.disabled = !(s > 0 && (freq === 'hour' || h > 0));
+  }
+  salaryInput.addEventListener('input', validate);
+  hoursInput.addEventListener('input', validate);
+  validate();
+
+  setupBtn.addEventListener('click', () => {
+    const salary = parseFloat(salaryInput.value);
+    const hoursPerWeek = parseFloat(hoursInput.value) || 40;
+    config = { salary, freq, hoursPerWeek, hourlyRate: calcHourlyRate(salary, freq, hoursPerWeek) };
+    localStorage.setItem('capricho_config', JSON.stringify(config));
+    showMain();
+  });
+}
+
+function calcHourlyRate(salary, freq, hoursPerWeek) {
+  if (freq === 'hour')  return salary;
+  if (freq === 'month') return salary / (4.333 * hoursPerWeek);
+  if (freq === 'year')  return salary / (52 * hoursPerWeek);
+}
+
+function wireMain() {
+  document.getElementById('settings-btn').addEventListener('click', () => showSetup());
+  document.getElementById('price-input').addEventListener('input', onPrice);
+}
+
+function renderRate() {
+  document.getElementById('rate-value').textContent = formatEuro(config.hourlyRate) + '/h';
+}
+
+function onPrice() {
+  const price = parseFloat(document.getElementById('price-input').value);
+  const container = document.getElementById('result-container');
+  if (!price || price <= 0) { container.innerHTML = emptyState(); return; }
+  container.innerHTML = buildResult(price);
+}
+
+function buildResult(price) {
+  const totalMin = (price / config.hourlyRate) * 60;
+  return `
+    <div class="result-area">
+      <div class="result-hero">
+        <div class="result-time-label">Esto te costará</div>
+        <div class="result-time">${formatTime(totalMin)}</div>
+        <div class="result-sub">de tu vida trabajando</div>
+        ${verdict(totalMin)}
+      </div>
+      <div class="refs-title">Esto equivale a…</div>
+      ${buildRefs(totalMin, price)}
+    </div>`;
+}
+
+function formatTime(m) {
+  if (m < 1) return Math.round(m * 60) + ' seg';
+  if (m < 60) return Math.round(m) + ' min';
+  const h = Math.floor(m / 60), min = Math.round(m % 60);
+  return min === 0 ? h + 'h' : h + 'h ' + min + 'min';
+}
+
+function verdict(m) {
+  const h = m / 60;
+  const [cls, text] = h < 0.5 ? ['great','¡Qué ganga! 🎉']
+    : h < 2  ? ['ok','Razonable 👌']
+    : h < 8  ? ['pricey','Hmm… piénsalo 🤔']
+    : ['ouch','¡Ay, qué caro! 😬'];
+  return `<div class="verdict ${cls}">${text}</div>`;
+}
+
+function buildRefs(totalMin, price) {
+  const weekRef = REFS.find(r => r.dynamic === 'week');
+  if (weekRef) weekRef.minutes = (config.hoursPerWeek || 40) * 60;
+
+  const MIN = 0.25, MAX = 60;
+
+  function score(r) {
+    const n = r.count;
+    return roundness(n) + (n < 0.5 || n > 30 ? -1 : 0);
+  }
+
+  const timeRefs = REFS
+    .filter(r => r.type === 'time' && r.minutes > 0)
+    .map(r => ({ ...r, count: totalMin / r.minutes }))
+    .filter(r => r.count >= MIN && r.count <= MAX)
+    .sort((a, b) => score(b) - score(a));
+
+  const priceRefs = REFS
+    .filter(r => r.type === 'price')
+    .map(r => ({ ...r, count: price / r.euros }))
+    .filter(r => r.count >= MIN && r.count <= MAX)
+    .sort((a, b) => score(b) - score(a));
+
+  let picked;
+  if (timeRefs.length >= 2 && priceRefs.length >= 2)
+    picked = [timeRefs[0], priceRefs[0], timeRefs[1], priceRefs[1]];
+  else if (!timeRefs.length)  picked = priceRefs.slice(0, 4);
+  else if (!priceRefs.length) picked = timeRefs.slice(0, 4);
+  else picked = [...timeRefs.slice(0,2), ...priceRefs.slice(0,2)].slice(0,4);
+
+  if (!picked.length) {
+    const days = totalMin / 480;
+    return refCard('💼', formatCount(days), days >= 2 ? 'jornadas laborales' : 'jornada laboral', 0);
+  }
+
+  return picked.map((r, i) => {
+    const n = r.count;
+    const word = n < 1.8 ? r.w : r.wp;
+    return refCard(r.icon, formatCount(n), r.of ? `${word} ${r.of}` : word, i);
+  }).join('');
+}
+
+function refCard(icon, count, label, delay) {
+  return `<div class="ref-card" style="animation-delay:${delay * 0.07}s">
+    <div class="ref-icon">${icon}</div>
+    <div class="ref-text">
+      <div class="ref-count">${count}</div>
+      <div class="ref-name">${label}</div>
+    </div>
+  </div>`;
+}
+
+function roundness(n) {
+  const f = n % 1;
+  if (f < 0.05 || f > 0.95) return 3;
+  if (Math.abs(f - 0.5) < 0.05) return 2;
+  if (Math.abs(f - 0.25) < 0.08 || Math.abs(f - 0.75) < 0.08) return 1;
+  return 0;
+}
+
+function formatCount(n) {
+  if (n < 0.5) return '½';
+  if (Math.abs(n - Math.round(n)) < 0.08) return String(Math.round(n));
+  if (n < 10) return n.toFixed(1);
+  return Math.round(n).toLocaleString('es');
+}
+
+function formatEuro(n) {
+  return n < 10 ? '€' + n.toFixed(2) : '€' + n.toFixed(2);
+}
+
+function emptyState() {
+  return `<div class="empty-state">
+    <div class="emoji">🛍️</div>
+    <p>Escribe el precio de ese capricho<br>y te diré cuánto de tu vida cuesta.</p>
+  </div>`;
+}
+
+init();
+</script>
+</body>
+</html>
